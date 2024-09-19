@@ -15,13 +15,17 @@ func main() {
     return
   }
 
-  hash := os.Args[2]
-  servers := []struct {
-    ip   string
-    port string
-  }{
-    {"150.165.42.135", "9000"},
-  }
+
+	hash := os.Args[2]
+	servers := []struct {
+		ip   string
+		port string
+	}{
+		// {"150.165.42.133", "9000"},
+		{"150.165.42.135", "9000"},
+		// {"150.165.42.134", "9000"},
+		// {"150.165.42.136", "9000"}, 
+	}
 
   for _, server := range servers {
     err := checkHashOnServerAndReceiveFile(server.ip, server.port, hash)
@@ -67,6 +71,7 @@ func checkHashOnServerAndReceiveFile(ip, port, hash string) error {
 }
 
 // Função para receber o arquivo do servidor
+<<<<<<< HEAD
 func receiveFile(conn net.Conn, hash string) error {
   // Criar o arquivo local para salvar os dados recebidos
   file, err := os.Create(hash + ".txt")
@@ -84,3 +89,38 @@ func receiveFile(conn net.Conn, hash string) error {
   fmt.Printf("Arquivo recebido (%d bytes) e salvo como: %s\n", bytesCopied, hash+".txt")
   return nil
 }
+=======
+func receiveFile(ip, port, hash string) error {
+	fmt.Println("receive file function")
+
+	conn, err := net.Dial("tcp", ip+":"+port)
+
+	fmt.Println("conexao")
+	fmt.Println(conn)
+
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	file, err := os.Create(hash + ".download")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("file")
+	fmt.Println(file)
+	defer file.Close()
+
+	// Recebe o arquivo do servidor
+	_, err = io.Copy(file, conn)
+	if err != nil {
+		return err
+	}
+	fmt.Println("response")
+	// fmt.Println(response)
+	
+	fmt.Println("Arquivo salvo como:", hash+".download")
+	return nil
+}
+>>>>>>> d01be5e82ee96aa5b03b84a05314bcdd09c14bc2
