@@ -13,7 +13,7 @@ func handleConnection(conn net.Conn) {
 	var hash string
 	fmt.Fscanf(conn, "%s\n", &hash)
 
-	directory := "./tmp"
+	directory := "./tmp/dataset"
 	found, calculatedHash, err := helpers.FindHash(hash, directory)
 
 	if calculatedHash >=0 {
