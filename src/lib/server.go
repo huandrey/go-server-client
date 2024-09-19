@@ -52,7 +52,30 @@ func handleConnection(conn net.Conn) {
 
 	if found {
 		fmt.Fprintf(conn, "found\n")
+		// Envia o arquivo para o cliente
+		err := sendFile(conn, filePath)
+		if err != nil {
+			fmt.Fprintf(conn, "error: %v\n", err)
+		}
 	} else {
 		fmt.Fprintf(conn, "not found\n")
 	}
+}
+
+// Função para enviar o arquivo para o cliente
+func sendFile(conn net.Conn, filePath string) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Envia o conteúdo do arquivo para o cliente
+	_, err = io.Copy(conn, file)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Arquivo enviado:", filePath)
+	return nil
 }

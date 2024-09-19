@@ -34,7 +34,13 @@ func main() {
 		}
 	
 		if response == "found" {
+			err := receiveFile(server.ip, server.port, hash)
+			if err != nil {
+				fmt.Printf("Erro ao receber o arquivo: %v\n", err)
+			}
 			fmt.Printf("%s:%s\n", server.ip, server.port)
+		} else {
+			fmt.Printf("Hash não encontrado no servidor %s:%s\n", server.ip, server.port)
 		}
 	}
 }
@@ -55,4 +61,28 @@ func checkHashOnServer(ip, port, hash string) (string, error) {
 	}
 
 	return message, nil
+}
+
+// Função para receber o arquivo do servidor
+func receiveFile(ip, port, hash string) error {
+	conn, err := net.Dial("tcp", ip+":"+port)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	file, err := os.Create(hash + ".download")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Recebe o arquivo do servidor
+	_, err = io.Copy(file, conn)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Arquivo salvo como:", hash+".download")
+	return nil
 }
