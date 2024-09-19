@@ -1,88 +1,86 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"net"
-	"os"
-	"strings"
+  "bufio"
+  "fmt"
+  "io"
+  "net"
+  "os"
+  "strings"
 )
 
 func main() {
-	if len(os.Args) != 3 || os.Args[1] != "search" {
-		fmt.Println("Uso correto: ./programa search hash_de_arquivo")
-		return
-	}
+  if len(os.Args) != 3 || os.Args[1] != "search" {
+    fmt.Println("Uso correto: ./programa search hash_de_arquivo")
+    return
+  }
 
-	hash := os.Args[2]
-	servers := []struct {
-		ip   string
-		port string
-	}{
-		{"150.165.42.115", "9000"},
-		{"150.165.42.114", "9000"},
-		{"150.165.42.113", "9000"}, 
-	}
+  hash := os.Args[2]
+  servers := []struct {
+    ip   string
+    port string
+  }{
+    {"150.165.42.135", "9000"},
+  }
 
-	for _, server := range servers {
-		response, err := checkHashOnServer(server.ip, server.port, hash)
-		response = strings.TrimSpace(response)
-		
-		if err != nil {
-			fmt.Printf("Erro ao conectar ao servidor %s:%s: %v\n", server.ip, server.port, err)
-			continue
-		}
-	
-		if response == "found" {
-			err := receiveFile(server.ip, server.port, hash)
-			if err != nil {
-				fmt.Printf("Erro ao receber o arquivo: %v\n", err)
-			}
-			fmt.Printf("%s:%s\n", server.ip, server.port)
-		} else {
-			fmt.Printf("Hash não encontrado no servidor %s:%s\n", server.ip, server.port)
-		}
-	}
+  for _, server := range servers {
+    err := checkHashOnServerAndReceiveFile(server.ip, server.port, hash)
+    if err != nil {
+      fmt.Printf("Erro ao processar o servidor %s:%s: %v\n", server.ip, server.port, err)
+    }
+  }
 }
 
-// Função para conectar ao servidor e enviar o hash
-func checkHashOnServer(ip, port, hash string) (string, error) {
-	conn, err := net.Dial("tcp", ip+":"+port)
-	if err != nil {
-		return "", err
-	}
-	defer conn.Close()
+// Função para conectar ao servidor, enviar o hash e receber o arquivo se o hash for encontrado
+func checkHashOnServerAndReceiveFile(ip, port, hash string) error {
+  conn, err := net.Dial("tcp", ip+":"+port)
+  if err != nil {
+    return fmt.Errorf("erro ao conectar ao servidor: %v", err)
+  }
+  defer conn.Close()
 
-	fmt.Fprintf(conn, "%s\n", hash)
+  // Enviar o hash
+  fmt.Fprintf(conn, "%s\n", hash)
 
-	message, err := bufio.NewReader(conn).ReadString('\n')
-	if err != nil {
-		return "", err
-	}
+  // Ler a resposta do servidor
+  message, err := bufio.NewReader(conn).ReadString('\n')
+  if err != nil {
+    return fmt.Errorf("erro ao ler a resposta do servidor: %v", err)
+  }
 
-	return message, nil
+  message = strings.TrimSpace(message)
+  if message == "found" {
+    fmt.Println("Arquivo encontrado, recebendo...")
+
+    // Receber o arquivo na mesma conexão
+    err := receiveFile(conn, hash)
+    if err != nil {
+      return fmt.Errorf("erro ao receber o arquivo: %v", err)
+    }
+
+    fmt.Printf("Arquivo recebido com sucesso do servidor %s:%s\n", ip, port)
+  } else {
+    fmt.Printf("Hash não encontrado no servidor %s:%s\n", ip, port)
+  }
+
+  return nil
 }
 
 // Função para receber o arquivo do servidor
-func receiveFile(ip, port, hash string) error {
-	conn, err := net.Dial("tcp", ip+":"+port)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
+func receiveFile(conn net.Conn, hash string) error {
+  // Criar o arquivo local para salvar os dados recebidos
+  file, err := os.Create(hash + ".txt")
+  if err != nil {
+    return fmt.Errorf("erro ao criar arquivo: %v", err)
+  }
+  defer file.Close()
 
-	file, err := os.Create(hash + ".download")
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+  // Copiar os dados recebidos para o arquivo
+  bytesCopied, err := io.Copy(file, conn)
+  if err != nil {
+    return fmt.Errorf("erro ao copiar dados: %v", err)
+  }
 
-	// Recebe o arquivo do servidor
-	_, err = io.Copy(file, conn)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Arquivo salvo como:", hash+".download")
-	return nil
+  fmt.Printf("Arquivo recebido (%d bytes) e salvo como: %s\n", bytesCopied, hash+".txt")
+  return nil
 }

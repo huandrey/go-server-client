@@ -7,19 +7,20 @@ import (
 	"strconv"
 )
 
-func FindHash(hash string, directory string) (bool, int, error) {
-	var foundHash int
+func FindHash(hash string, directory string) (bool, string, error) {
+	var foundFilePath string
+
 	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if !info.IsDir() {
-			calculatedHash, err := Sum(path)
+			calculatedHash, err := Sum(path)  // Presumindo que Sum é a função que calcula o hash
 			if err != nil {
 				return err
 			}
 			if strconv.Itoa(calculatedHash) == hash {
-				foundHash = calculatedHash
+				foundFilePath = path  // Armazena o caminho do arquivo encontrado
 				return fmt.Errorf("found")
 			}
 		}
@@ -27,7 +28,7 @@ func FindHash(hash string, directory string) (bool, int, error) {
 	})
 
 	if err != nil && err.Error() == "found" {
-		return true, foundHash, nil
+		return true, foundFilePath, nil
 	}
-	return false, -1, nil
+	return false, "", nil
 }

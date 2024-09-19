@@ -5,6 +5,8 @@ import (
 	"go-cliente-servidor/src/helpers"
 	"net"
 	"os"
+	"io"
+
 )
 
 func main() {
@@ -40,11 +42,11 @@ func handleConnection(conn net.Conn) {
 	fmt.Fscanf(conn, "%s\n", &hash)
 
 	directory := "./tmp/dataset"
-	found, calculatedHash, err := helpers.FindHash(hash, directory)
+	found, filePath, err := helpers.FindHash(hash, directory)
 
-	if calculatedHash >= 0 {
-		fmt.Println("O arquivo de hash", calculatedHash, "foi encontrado.")
-	}
+	// if calculatedHash >= 0 {
+	// 	fmt.Println("O arquivo de hash", calculatedHash, "foi encontrado.")
+	// }
 	if err != nil {
 		fmt.Fprintf(conn, "error: %v\n", err)
 		return
