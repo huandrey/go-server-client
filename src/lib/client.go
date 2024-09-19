@@ -8,24 +8,6 @@ import (
 	"strings"
 )
 
-// Função para conectar ao servidor e enviar o hash
-func checkHashOnServer(ip, port, hash string) (string, error) {
-	conn, err := net.Dial("tcp", ip+":"+port)
-	if err != nil {
-		return "", err
-	}
-	defer conn.Close()
-
-	fmt.Fprintf(conn, "%s\n", hash)
-
-	message, err := bufio.NewReader(conn).ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-
-	return message, nil
-}
-
 func main() {
 	if len(os.Args) != 3 || os.Args[1] != "search" {
 		fmt.Println("Uso correto: ./programa search hash_de_arquivo")
@@ -55,4 +37,22 @@ func main() {
 			fmt.Printf("%s:%s\n", server.ip, server.port)
 		}
 	}
+}
+
+// Função para conectar ao servidor e enviar o hash
+func checkHashOnServer(ip, port, hash string) (string, error) {
+	conn, err := net.Dial("tcp", ip+":"+port)
+	if err != nil {
+		return "", err
+	}
+	defer conn.Close()
+
+	fmt.Fprintf(conn, "%s\n", hash)
+
+	message, err := bufio.NewReader(conn).ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+
+	return message, nil
 }

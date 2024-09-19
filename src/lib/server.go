@@ -7,30 +7,6 @@ import (
 	"os"
 )
 
-func handleConnection(conn net.Conn) {
-	defer conn.Close()
-
-	var hash string
-	fmt.Fscanf(conn, "%s\n", &hash)
-
-	directory := "./tmp/dataset"
-	found, calculatedHash, err := helpers.FindHash(hash, directory)
-
-	if calculatedHash >=0 {
-		fmt.Println("O arquivo de hash", calculatedHash, "foi encontrado.")
-	}
-	if err != nil {
-		fmt.Fprintf(conn, "error: %v\n", err)
-		return
-	}
-
-	if found {
-		fmt.Fprintf(conn, "found\n")
-	} else {
-		fmt.Fprintf(conn, "not found\n")
-	}
-}
-
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Println("Uso correto: ./servidor <porta>")
@@ -54,5 +30,29 @@ func main() {
 			continue
 		}
 		go handleConnection(conn)
+	}
+}
+
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+
+	var hash string
+	fmt.Fscanf(conn, "%s\n", &hash)
+
+	directory := "./tmp/dataset"
+	found, calculatedHash, err := helpers.FindHash(hash, directory)
+
+	if calculatedHash >= 0 {
+		fmt.Println("O arquivo de hash", calculatedHash, "foi encontrado.")
+	}
+	if err != nil {
+		fmt.Fprintf(conn, "error: %v\n", err)
+		return
+	}
+
+	if found {
+		fmt.Fprintf(conn, "found\n")
+	} else {
+		fmt.Fprintf(conn, "not found\n")
 	}
 }
