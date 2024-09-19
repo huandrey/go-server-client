@@ -8,8 +8,7 @@ import (
 )
 
 func FindHash(hash string, directory string) (bool, int, error) {
-	var foundHash int
-	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+	filepath, err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -23,11 +22,11 @@ func FindHash(hash string, directory string) (bool, int, error) {
 				return fmt.Errorf("found")
 			}
 		}
-		return nil
+		return filepath
 	})
 
 	if err != nil && err.Error() == "found" {
-		return true, foundHash, nil
+		return true, filepath, nil
 	}
 	return false, -1, nil
 }

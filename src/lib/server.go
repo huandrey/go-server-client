@@ -53,7 +53,7 @@ func handleConnection(conn net.Conn) {
 	if found {
 		fmt.Fprintf(conn, "found\n")
 		// Envia o arquivo para o cliente
-		err := sendFile(conn, filePath)
+		response, err := sendFile(conn, filePath)
 		if err != nil {
 			fmt.Fprintf(conn, "error: %v\n", err)
 		}
@@ -71,11 +71,11 @@ func sendFile(conn net.Conn, filePath string) error {
 	defer file.Close()
 
 	// Envia o conteúdo do arquivo para o cliente
-	_, err = io.Copy(conn, file)
+	response, err = io.Copy(conn, file)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("Arquivo enviado:", filePath)
-	return nil
+	return response
 }

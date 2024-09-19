@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"io"
 	"strings"
 )
 
@@ -19,9 +20,10 @@ func main() {
 		ip   string
 		port string
 	}{
-		{"150.165.42.115", "9000"},
-		{"150.165.42.114", "9000"},
-		{"150.165.42.113", "9000"}, 
+		// {"150.165.42.133", "9000"},
+		{"150.165.42.135", "9000"},
+		// {"150.165.42.134", "9000"},
+		// {"150.165.42.136", "9000"}, 
 	}
 
 	for _, server := range servers {
@@ -65,7 +67,13 @@ func checkHashOnServer(ip, port, hash string) (string, error) {
 
 // Função para receber o arquivo do servidor
 func receiveFile(ip, port, hash string) error {
+	fmt.Println("receive file function")
+
 	conn, err := net.Dial("tcp", ip+":"+port)
+
+	fmt.Println("conexao")
+	fmt.Println(conn)
+
 	if err != nil {
 		return err
 	}
@@ -75,6 +83,9 @@ func receiveFile(ip, port, hash string) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("file")
+	fmt.Println(file)
 	defer file.Close()
 
 	// Recebe o arquivo do servidor
@@ -82,7 +93,9 @@ func receiveFile(ip, port, hash string) error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("response")
+	// fmt.Println(response)
+	
 	fmt.Println("Arquivo salvo como:", hash+".download")
 	return nil
 }
