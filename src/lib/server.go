@@ -5,6 +5,8 @@ import (
 	"go-cliente-servidor/src/helpers"
 	"net"
 	"os"
+	"io"
+
 )
 
 func main() {
@@ -40,11 +42,11 @@ func handleConnection(conn net.Conn) {
 	fmt.Fscanf(conn, "%s\n", &hash)
 
 	directory := "./tmp/dataset"
-	found, calculatedHash, err := helpers.FindHash(hash, directory)
+	found, filePath, err := helpers.FindHash(hash, directory)
 
-	if calculatedHash >= 0 {
-		fmt.Println("O arquivo de hash", calculatedHash, "foi encontrado.")
-	}
+	// if calculatedHash >= 0 {
+	// 	fmt.Println("O arquivo de hash", calculatedHash, "foi encontrado.")
+	// }
 	if err != nil {
 		fmt.Fprintf(conn, "error: %v\n", err)
 		return
@@ -52,7 +54,30 @@ func handleConnection(conn net.Conn) {
 
 	if found {
 		fmt.Fprintf(conn, "found\n")
+		// Envia o arquivo para o cliente
+		response, err := sendFile(conn, filePath)
+		if err != nil {
+			fmt.Fprintf(conn, "error: %v\n", err)
+		}
 	} else {
 		fmt.Fprintf(conn, "not found\n")
 	}
+}
+
+// Função para enviar o arquivo para o cliente
+func sendFile(conn net.Conn, filePath string) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Envia o conteúdo do arquivo para o cliente
+	response, err = io.Copy(conn, file)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Arquivo enviado:", filePath)
+	return response
 }
